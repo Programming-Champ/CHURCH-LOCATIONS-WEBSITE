@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/eva-icons/style/eva-icons.css">
+</head>
+<body>
+    <div class="header sticky">
+        <img src="assets/images/sda2.png" alt="Logo" class="logo">
+        <h1>Seventh-day Adventist Church Locations</h1>
+        <nav class="navbar">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="addModifyPlace.html">Add/Modify Place</a>
+        </nav>
+        <div class="hamburger" id="hamburger-icon">☰</div>
+
+        <div class="header-words" id="header-words">
+            <a href="index.html" class="header-link" data-page="home">Home</a>
+            <a href="about.html" class="header-link" data-page="about">About</a>
+            <a href="addModifyPlace.html" class="header-link" data-page="addModify">Add/Modify Place</a>
+            <!-- Add more links as needed -->
+        </div>
+
+    </div>
+
+    <main>
+        <section class="about-section">
+            <h2 class="small-heading">Welcome to our mission-driven platform!</h2>
+            
+
+            <p class="about-paragraph"> 
+                Our Lord and Saviour Jesus Christ commissioned us to go to all nations and disciple. For close to 2000 years the message of the kingdom has been preached in all nations. 
+                <p>This platform is an attempt to show the extent to which the three angles message has been preached in Kenya. It depicts:</p>
+                <p>          i.	erected churches and sabbath schools</p>
+                <p>         ii.	Sites where missions have been conducted in time past</p>
+                <p>         iii. and site proposals for future missions</p>
+                <p>There is an assumption that the urban churches have an influence of a radius of 1km and 2km for rural churches. 
+                    Or in other words, an individual travels a maximum of 1km in urban areas and 2km in rural areas to move from their residence to church. Also, urban churches are a maximum of 2km apart and 4km in rural areas.
+                    By switching on the area of influence one can see the extent every church should impact the neighbouring area. 
+                    The map therefore aids also in identifying potential areas for conducting evangelistic campaigns and erecting Sabbath schools.
+                </p>
+
+            </p>
+
+            <div class="about-image-container">
+                <img src="assets/images/3a4.jfif" alt="A community gathering in Kenya" class="about-image">
+            </div>
+
+            <p class="about-paragraph">
+                <h3>Volunteering</h3>
+                Through our platform, volunteers can easily find, add, and update mission sites, churches, and 
+                other locations vital to the spreading of the three angles message. We believe in the power of shared vision and purpose to 
+                bring about meaningful change in our communities. 
+                <p>The locations of the churches have been extracted from google maps. The data that willing volunteers shall provide, will be verified and then the locations shall be updated in both this website and google maps.</p>
+ 
+            </p>
+
+            <div class="about-image-container">
+                <img src="assets/images/vol4.jfif" alt="Volunteers working together" class="about-image">
+            </div>
+        </section>
+    </main>
+
+    <div class="footer-bar">
+        <div class="footer-item">
+            <i class="eva eva-email-outline"></i> geospatialgenius@gmail.com
+        </div>
+        <div class="footer-item">
+            <i class="eva eva-phone-outline"></i> +2547012345678
+        </div>
+        <div class="footer-item">
+            <i class="eva eva-copyright-outline"></i> 2024
+        </div>
+    </div>
+    <script>
+        // Toggle visibility of the header words
+        document.getElementById('hamburger-icon').addEventListener('click', function() {
+            const headerWords = document.getElementById('header-words');
+            headerWords.classList.toggle('visible'); // Toggle visibility class
+        });
+
+        // Highlight the current page link
+        const currentPage = window.location.pathname.split('/').pop(); // Get the current page
+        const headerLinks = document.querySelectorAll('.header-link');
+
+        headerLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPage) {
+                link.classList.add('active'); // Highlight if it's the current page
+            }
+        });
+    </script>
+
+    <script src="assets/js/script.js"></script>
+
+    
+</body>
+</html>
