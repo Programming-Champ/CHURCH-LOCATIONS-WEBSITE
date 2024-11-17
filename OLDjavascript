@@ -1,0 +1,381 @@
+
+
+// Initialize the map
+const map = L.map('map').setView([-1.2921, 36.8219], 13); // Center on Nairobi
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+}).addTo(map);
+
+// Custom icons
+const createIcon = (iconUrl) => L.icon({
+    iconUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+});
+
+const churchIcon = createIcon('assets/icons/bluePin.svg');
+const missionDoneIcon = createIcon('assets/icons/yellowPin.svg');
+const proposedMissionIcon = createIcon('assets/icons/greenPin.svg');
+
+// Layer groups for control
+const churchLayer = L.layerGroup().addTo(map);
+const doneMissionLayer = L.layerGroup().addTo(map);
+const proposedMissionLayer = L.layerGroup().addTo(map);
+
+// Buffers storage (not added to the map initially)
+const churchBuffers = { '1km': [], '2km': [] };
+const doneMissionBuffers = { '1km': [], '2km': [] };
+
+// Function to create a buffer circle
+const createBuffer = (lat, long, radius, color) => L.circle([lat, long], { radius, color, opacity: 0.5 });
+
+// Function to fetch and display markers
+async function fetchLocations() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/locations');
+        const data = await response.json();
+        
+        const churchMarkers = {};
+
+        // Process Churches
+        data.churches.forEach(location => {
+            const marker = L.marker([location.lat, location.long], { icon: churchIcon })
+                .addTo(churchLayer)
+                .bindTooltip(location.name); // Show name on hover
+
+            churchMarkers[location.name] = marker;
+
+            // Create buffers around churches (not added to the map yet)
+            churchBuffers['1km'].push(createBuffer(location.lat, location.long, 1000, 'blue'));
+            churchBuffers['2km'].push(createBuffer(location.lat, location.long, 2000, 'blue'));
+        });
+
+        // Process Done Mission Sites
+        data.done_mission_sites.forEach(location => {
+            const marker = L.marker([location.lat, location.long], { icon: missionDoneIcon })
+                .addTo(doneMissionLayer)
+                .bindTooltip(location.name);
+
+            doneMissionBuffers['1km'].push(createBuffer(location.lat, location.long, 1000, 'yellow'));
+            doneMissionBuffers['2km'].push(createBuffer(location.lat, location.long, 2000, 'yellow'));
+        });
+
+        // Process Proposed Mission Sites
+        data.proposed_mission_sites.forEach(location => {
+            L.marker([location.lat, location.long], { icon: proposedMissionIcon })
+                .addTo(proposedMissionLayer)
+                .bindTooltip(location.name);
+        });
+    } catch (error) {
+        console.error("Error fetching locations:", error);
+    }
+}
+
+// Function to populate markers map
+function populateMarkersMap(data) {
+    data.churches.forEach(location => {
+        const marker = L.marker([location.lat, location.long], { icon: churchIcon })
+            .addTo(map)
+            .addTo(churchLayer)
+            .bindTooltip(location.name);
+        
+        markersMap.set(location.name.toLowerCase(), marker);
+        // Optionally, you can bind a popup to the marker for more info
+        marker.bindPopup(location.name);
+    });
+}
+
+// Create a layer control
+const overlayMaps = {
+    "Churches": churchLayer,
+    "Done Mission Sites": doneMissionLayer,
+    "Proposed Mission Sites": proposedMissionLayer
+};
+
+L.control.layers(null, overlayMaps).addTo(map);
+
+// Buffer toggle control
+const bufferToggle = L.control({ position: 'topright' });
+
+bufferToggle.onAdd = function() {
+    const div = L.DomUtil.create('div', 'buffer-toggle');
+    div.innerHTML = `
+        <h5>Area of influence</h5>
+        <label><input type="checkbox" id="1km-toggle"> 1 km</label><br>
+        <label><input type="checkbox" id="2km-toggle"> 2 km</label>`;
+    return div;
+};
+
+bufferToggle.addTo(map);
+
+// Event listeners for buffer toggles
+document.getElementById('1km-toggle').addEventListener('change', function() {
+    const isChecked = this.checked;
+    churchBuffers['1km'].forEach(circle => isChecked ? circle.addTo(map) : circle.remove());
+    doneMissionBuffers['1km'].forEach(circle => isChecked ? circle.addTo(map) : circle.remove());
+});
+
+document.getElementById('2km-toggle').addEventListener('change', function() {
+    const isChecked = this.checked;
+    churchBuffers['2km'].forEach(circle => isChecked ? circle.addTo(map) : circle.remove());
+    doneMissionBuffers['2km'].forEach(circle => isChecked ? circle.addTo(map) : circle.remove());
+});
+
+// Universal Hamburger Menu Toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const headerWords = document.getElementById('header-words');
+
+    hamburgerIcon.addEventListener('click', function(event) {
+        headerWords.classList.toggle('visible'); // Toggle visibility class
+        event.stopPropagation(); // Prevent the click from bubbling up to the document
+    });
+
+    document.addEventListener('click', function(event) {
+        if (!headerWords.contains(event.target) && !hamburgerIcon.contains(event.target)) {
+            headerWords.classList.remove('visible'); // Hide the links
+        }
+    });
+});
+
+// Highlight the current page link
+const currentPage = window.location.pathname.split('/').pop(); // Get the current page
+const headerLinks = document.querySelectorAll('.header-link');
+
+headerLinks.forEach(link => {
+    if (link.getAttribute('href') === currentPage) {
+        link.classList.add('active'); // Highlight if it's the current page
+    }
+});
+
+// Search functionality
+const searchIcon = document.querySelector('.search-container i');
+const searchInput = document.getElementById('search-input');
+const suggestionsContainer = document.getElementById('suggestions');
+let markersMap = new Map();
+
+function toggleSearch() {
+    const isVisible = searchInput.style.display === 'block';
+    searchInput.style.display = isVisible ? 'none' : 'block';
+    suggestionsContainer.style.display = isVisible ? 'none' : 'block';
+    
+    if (!isVisible) {
+        searchInput.focus();
+        searchInput.value = ''; // Clear input when opened
+        suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+    }
+}
+
+function closeSearchIfClickedOutside(event) {
+    const searchContainer = document.querySelector('.search-container');
+    if (!searchContainer.contains(event.target)) {
+        searchInput.style.display = 'none';
+        suggestionsContainer.style.display = 'none';
+        suggestionsContainer.innerHTML = '';
+    }
+}
+
+searchIcon.addEventListener('click', toggleSearch);
+document.addEventListener('click', closeSearchIfClickedOutside);
+
+// Fetch locations and populate markers map initially
+fetchLocations().then(data => {
+    populateMarkersMap(data);
+});
+
+// Search for locations
+async function searchLocation() {
+    const query = searchInput.value.toLowerCase();
+    suggestionsContainer.innerHTML = '';
+
+    // Only proceed if the input is not empty
+    if (query.length === 0) {
+        suggestionsContainer.style.display = 'none'; // Hide suggestions if input is empty
+        return; // Exit the function early
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/locations');
+        const data = await response.json();
+        console.log(data); // Log the API response
+
+        // Check if data.churches exists and is an array
+        if (!data.churches || !Array.isArray(data.churches)) {
+            console.error('Expected an array of churches, but got:', data.churches);
+            return; // Exit if the structure is not as expected
+        }
+
+        // Filter results based on the name only and ensure uniqueness
+        const uniqueResults = new Set(); // Use a Set to avoid duplicates
+        const results = data.churches.filter(location => {
+            const name = location.name.toLowerCase();
+            if (name.includes(query) && !uniqueResults.has(name)) {
+                uniqueResults.add(name); // Add to the Set for uniqueness
+                return true; // Include this location in results
+            }
+            return false; // Exclude this location from results
+        });
+
+        if (results.length > 0) {
+            suggestionsContainer.style.display = 'block'; // Show suggestions when there are results
+            results.slice(0, 4).forEach(location => {
+                const suggestion = document.createElement('li');
+                suggestion.textContent = `${location.name}`; // Only display the name
+                suggestion.style.cursor = 'pointer';
+
+                suggestion.onclick = () => {
+                    const marker = markersMap.get(location.name.toLowerCase());
+                    if (marker) {
+                        map.setView(marker.getLatLng(), 15); // Zoom to the marker
+                        marker.setIcon(createIcon('assets/icons/redPin.svg')); // Change the marker to red
+                    }
+                    searchInput.value = ''; // Clear input on selection
+                    suggestionsContainer.innerHTML = ''; // Clear suggestions after selection
+                    suggestionsContainer.style.display = 'none'; // Hide suggestions after selection
+                };
+                suggestionsContainer.appendChild(suggestion);
+            });
+        } else {
+            const addOption = document.createElement('li');
+            addOption.textContent = 'Would you like to add a church?';
+            addOption.style.fontStyle = 'italic';
+            addOption.style.cursor = 'pointer';
+            addOption.onclick = () => {
+                window.location.href = 'addModifyPlace.html';
+            };
+            suggestionsContainer.appendChild(addOption);
+        }
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+    }
+}
+
+searchInput.addEventListener('input', searchLocation);
+
+// Footer visibility based on scroll
+const footer = document.querySelector('.footer-bar');
+
+window.addEventListener('scroll', function() {
+    const scrollPosition = window.scrollY + window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    if (scrollPosition >= documentHeight - 10) {
+        footer.classList.add('visible');
+    } else {
+        footer.classList.remove('visible');
+    }
+});
+
+// Fetch suggestions for county and conference
+function fetchSuggestions(query, type) {
+    if (query.length < 1) {
+        clearSuggestions(type);
+        return;
+    }
+
+    fetch(`/suggest/${type}?q=` + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(data => {
+            populateSuggestions(data.suggestions, type);
+        });
+}
+
+// Populate suggestions
+function populateSuggestions(suggestions, type) {
+    const suggestionBox = document.getElementById(`${type}-suggestions`);
+    suggestionBox.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        li.addEventListener('click', () => {
+            document.getElementById(type).value = suggestion;
+            suggestionBox.innerHTML = '';
+        });
+        suggestionBox.appendChild(li);
+    });
+}
+
+// Clear suggestions
+function clearSuggestions(type) {
+    document.getElementById(`${type}-suggestions`).innerHTML = '';
+}
+
+// Event listeners for suggestions
+document.getElementById('conference').addEventListener('input', (e) => fetchSuggestions(e.target.value, 'conference'));
+document.getElementById('county').addEventListener('input', (e) => fetchSuggestions(e.target.value, 'county'));
+
+// Assuming your form has an ID 'submission-form'
+const form = document.getElementById('missionForm');
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent the default form submission behavior
+
+    // Gather form data
+    const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        churchName: document.getElementById('church-name').value,
+        county: document.getElementById('county').value,
+        // Add other fields as necessary
+    };
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+        console.log("Form submission result:", result);
+        // Optionally clear the form or show a success message here
+    } catch (error) {
+        console.error("Error submitting form:", error);
+    }
+});
+
+// Add event listener to the church name input field
+document.getElementById('churchNameInput').addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    if (query.length >= 2) {  // Start searching after 2 characters
+        fetch(`/search-churches?query=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                const suggestionsList = document.getElementById('conference-suggestions');
+                suggestionsList.innerHTML = ''; // Clear previous suggestions
+                
+                // Loop through suggestions and create <li> elements for each
+                data.suggestions.forEach(suggestion => {
+                    const suggestionItem = document.createElement('li');
+                    suggestionItem.classList.add('suggestion-item');
+                    suggestionItem.textContent = `${suggestion.name}, ${suggestion.county}`;
+                    
+                    // Handle click on each suggestion
+                    suggestionItem.addEventListener('click', function() {
+                        // Auto-fill the form fields
+                        document.getElementById('churchNameInput').value = suggestion.name;
+                        document.getElementById('countyInput').value = suggestion.county;
+                        document.getElementById('conferenceInput').value = suggestion.conference;
+                        
+                        // Optionally zoom to location (if applicable in your setup)
+                        zoomToLocation(suggestion.lat, suggestion.lng);  // Assuming this is your map function
+                        
+                        // Clear suggestions once a suggestion is clicked
+                        suggestionsList.innerHTML = '';
+                    });
+                    
+                    // Append the <li> item to the <ul>
+                    suggestionsList.appendChild(suggestionItem);
+                });
+            })
+            .catch(err => console.error('Error fetching suggestions:', err));
+    } else {
+        // Clear suggestions if input is less than 2 characters
+        document.getElementById('conference-suggestions').innerHTML = '';
+    }
+});
