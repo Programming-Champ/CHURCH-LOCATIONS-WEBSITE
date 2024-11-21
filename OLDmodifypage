@@ -275,7 +275,7 @@
 
         // Load Google Maps API script
         const script = document.createElement('script');
-        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA4ONHbGagh4LogQeeH_qvrzzqLQ11o_74&callback=initMap";
+        script.src = "            ";
         document.head.appendChild(script);
     </script>
 </body>
