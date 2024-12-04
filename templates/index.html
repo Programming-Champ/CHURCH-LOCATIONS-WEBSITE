@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDA Church Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search locations...">
+        <button id="search-button">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- Top Right Icons -->
+    <div class="top-right-icons">
+        <button class="icon-button" id="add-location">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="icon-button" id="send-feedback">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <button class="icon-button" id="comments">
+            <i class="fas fa-comments"></i>
+        </button>
+    </div>
+
+    <!-- Hamburger Menu -->
+    <div class="hamburger-container">
+        <button class="hamburger-button" id="hamburger-menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="right-panel">
+        <div class="panel-header">
+            <h2>Advanced Features</h2>
+            <button class="close-panel" id="close-panel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <section class="panel-section">
+                <h3>Map Settings</h3>
+                <div class="setting-item">
+                    <label>Map Style:</label>
+                    <select id="map-style">
+                        <option value="streets">Streets</option>
+                        <option value="satellite">Satellite</option>
+                        <option value="terrain">Terrain</option>
+                    </select>
+                </div>
+            </section>
+            <section class="panel-section">
+                <h3>Data Filters</h3>
+                <div class="setting-item">
+                    <label>Date Range:</label>
+                    <input type="date" id="date-from">
+                    <input type="date" id="date-to">
+                </div>
+            </section>
+            <section class="panel-section">
+                <h3>Export Options</h3>
+                <div class="setting-item">
+                    <button class="panel-button">Export as CSV</button>
+                    <button class="panel-button">Export as KML</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Bottom Toggles -->
+    <div class="bottom-toggles">
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="churches-toggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Churches</span>
+        </div>
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="mission-sites-toggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Mission Sites</span>
+        </div>
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="influence-toggle">
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Area of Influence</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

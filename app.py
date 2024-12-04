@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg2
 import gspread
@@ -21,6 +21,10 @@ def get_db_connection():
         password='password'
     )
     return conn
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/locations', methods=['GET'])
 def get_locations():

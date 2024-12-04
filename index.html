@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDA Church Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search locations...">
+        <button id="search-button">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- Top Right Icons -->
+    <div class="top-right-icons">
+        <button class="icon-button" id="add-location">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="icon-button" id="send-feedback">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <button class="icon-button" id="comments">
+            <i class="fas fa-comments"></i>
+        </button>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Bottom Toggles -->
+    <div class="bottom-toggles">
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="churches-toggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Churches</span>
+        </div>
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="mission-sites-toggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Mission Sites</span>
+        </div>
+        <div class="toggle-container">
+            <label class="toggle">
+                <input type="checkbox" id="influence-toggle">
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Area of Influence</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Custom JS -->
+    <script src="static/js/main.js"></script>
+</body>
+</html>
