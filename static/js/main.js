@@ -1,29 +1,30 @@
 // Initialize map
-const map = L.map('map').setView([-26.2041, 28.0473], 10); // Centered on Johannesburg
+const map = L.map('map').setView([0.0236, 37.9062], 6); // Kenya coordinates
 
-// Add OpenStreetMap tile layer
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+    attribution: ' OpenStreetMap contributors'
 }).addTo(map);
 
 // Layer groups for different markers
-const churchesLayer = L.layerGroup().addTo(map);
-const missionSitesLayer = L.layerGroup().addTo(map);
+const churchLayer = L.layerGroup().addTo(map);
+const missionLayer = L.layerGroup().addTo(map);
 const influenceLayer = L.layerGroup().addTo(map);
 
 // Custom markers
-const churchIcon = L.icon({
-    iconUrl: '/static/images/church-icon.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
+const churchIcon = L.divIcon({
+    html: '<i class="fas fa-map-pin" style="color: #007acc; font-size: 24px;"></i>',
+    className: 'custom-pin',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24]
 });
 
-const missionIcon = L.icon({
-    iconUrl: '/static/images/mission-icon.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
+const missionIcon = L.divIcon({
+    html: '<i class="fas fa-map-pin" style="color: #e74c3c; font-size: 24px;"></i>',
+    className: 'custom-pin',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24]
 });
 
 // Fetch and display locations
@@ -33,21 +34,21 @@ async function fetchLocations() {
         const data = await response.json();
         
         // Clear existing markers
-        churchesLayer.clearLayers();
-        missionSitesLayer.clearLayers();
+        churchLayer.clearLayers();
+        missionLayer.clearLayers();
         
         // Add churches
         data.churches.forEach(church => {
             L.marker([church.lat, church.long], {icon: churchIcon})
                 .bindPopup(`<b>${church.name}</b><br>Church`)
-                .addTo(churchesLayer);
+                .addTo(churchLayer);
         });
         
         // Add mission sites
         data.done_mission_sites.forEach(site => {
             L.marker([site.lat, site.long], {icon: missionIcon})
                 .bindPopup(`<b>${site.name}</b><br>Mission Site`)
-                .addTo(missionSitesLayer);
+                .addTo(missionLayer);
         });
     } catch (error) {
         console.error('Error fetching locations:', error);
@@ -57,17 +58,17 @@ async function fetchLocations() {
 // Toggle event listeners
 document.getElementById('churches-toggle').addEventListener('change', function(e) {
     if (e.target.checked) {
-        map.addLayer(churchesLayer);
+        map.addLayer(churchLayer);
     } else {
-        map.removeLayer(churchesLayer);
+        map.removeLayer(churchLayer);
     }
 });
 
 document.getElementById('mission-sites-toggle').addEventListener('change', function(e) {
     if (e.target.checked) {
-        map.addLayer(missionSitesLayer);
+        map.addLayer(missionLayer);
     } else {
-        map.removeLayer(missionSitesLayer);
+        map.removeLayer(missionLayer);
     }
 });
 
@@ -80,31 +81,9 @@ document.getElementById('influence-toggle').addEventListener('change', function(
     }
 });
 
-// Panel functionality
-const hamburgerMenu = document.getElementById('hamburger-menu');
-const rightPanel = document.getElementById('right-panel');
-const closePanel = document.getElementById('close-panel');
+// Map style changes
 const mapStyleSelect = document.getElementById('map-style');
 
-// Toggle panel
-hamburgerMenu.addEventListener('click', () => {
-    rightPanel.classList.add('open');
-});
-
-closePanel.addEventListener('click', () => {
-    rightPanel.classList.remove('open');
-});
-
-// Close panel when clicking outside
-document.addEventListener('click', (e) => {
-    if (!rightPanel.contains(e.target) && 
-        !hamburgerMenu.contains(e.target) && 
-        rightPanel.classList.contains('open')) {
-        rightPanel.classList.remove('open');
-    }
-});
-
-// Map style changes
 mapStyleSelect.addEventListener('change', (e) => {
     const style = e.target.value;
     if (style === 'satellite') {
@@ -117,7 +96,7 @@ mapStyleSelect.addEventListener('change', (e) => {
         }).addTo(map);
     } else {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: ' OpenStreetMap contributors'
         }).addTo(map);
     }
 });
@@ -136,6 +115,48 @@ searchInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         performSearch();
     }
+});
+
+// Sidebar functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.querySelector('.sidebar');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const panels = document.querySelectorAll('.panel-content');
+
+    // Handle tab switching
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent click from bubbling to document
+            
+            const wasActive = button.classList.contains('active');
+            
+            // Update active states
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            if (!wasActive) {
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                const panel = document.getElementById(`${tabId}-panel`);
+                
+                if (panel) {
+                    panel.classList.add('active');
+                    sidebar.classList.add('expanded');
+                }
+            } else {
+                sidebar.classList.remove('expanded');
+            }
+        });
+    });
+
+    // Close sidebar when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target)) {
+            sidebar.classList.remove('expanded');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            panels.forEach(panel => panel.classList.remove('active'));
+        }
+    });
 });
 
 // Initialize the map with data

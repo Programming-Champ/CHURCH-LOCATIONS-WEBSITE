@@ -36,23 +36,29 @@
         </button>
     </div>
 
-    <!-- Hamburger Menu -->
-    <div class="hamburger-container">
-        <button class="hamburger-button" id="hamburger-menu">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
+    <!-- Map Container -->
+    <div id="map"></div>
 
-    <!-- Right Panel -->
-    <div class="right-panel" id="right-panel">
-        <div class="panel-header">
-            <h2>Advanced Features</h2>
-            <button class="close-panel" id="close-panel">
-                <i class="fas fa-times"></i>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-tabs">
+            <button class="tab-button active" data-tab="settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="tab-button" data-tab="locations">
+                <i class="fas fa-map-marker-alt"></i>
+            </button>
+            <button class="tab-button" data-tab="filters">
+                <i class="fas fa-filter"></i>
+            </button>
+            <button class="tab-button" data-tab="export">
+                <i class="fas fa-file-export"></i>
             </button>
         </div>
-        <div class="panel-content">
-            <section class="panel-section">
+        
+        <div class="sidebar-content">
+            <!-- Settings Panel -->
+            <div class="panel-content active" id="settings-panel">
                 <h3>Map Settings</h3>
                 <div class="setting-item">
                     <label>Map Style:</label>
@@ -62,27 +68,117 @@
                         <option value="terrain">Terrain</option>
                     </select>
                 </div>
-            </section>
-            <section class="panel-section">
+                <div class="setting-item">
+                    <label>Default Location:</label>
+                    <select id="default-location">
+                        <option value="johannesburg">Johannesburg</option>
+                        <option value="pretoria">Pretoria</option>
+                        <option value="capetown">Cape Town</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Map Controls:</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" checked> Show Scale</label>
+                        <label><input type="checkbox" checked> Show Zoom Controls</label>
+                        <label><input type="checkbox" checked> Show Legend</label>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Locations Panel -->
+            <div class="panel-content" id="locations-panel">
+                <h3>Locations</h3>
+                <div class="search-box">
+                    <input type="text" placeholder="Search locations...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="location-filters">
+                    <label><input type="checkbox" checked> Churches</label>
+                    <label><input type="checkbox" checked> Mission Sites</label>
+                </div>
+                <div class="location-list">
+                    <div class="location-group">
+                        <h4>Churches</h4>
+                        <div class="location-item">
+                            <i class="fas fa-church"></i>
+                            <span>Central SDA Church</span>
+                        </div>
+                        <div class="location-item">
+                            <i class="fas fa-church"></i>
+                            <span>Hillside SDA Church</span>
+                        </div>
+                    </div>
+                    <div class="location-group">
+                        <h4>Mission Sites</h4>
+                        <div class="location-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Eastern Mission Center</span>
+                        </div>
+                        <div class="location-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Southern Outreach</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Filters Panel -->
+            <div class="panel-content" id="filters-panel">
                 <h3>Data Filters</h3>
                 <div class="setting-item">
                     <label>Date Range:</label>
                     <input type="date" id="date-from">
                     <input type="date" id="date-to">
                 </div>
-            </section>
-            <section class="panel-section">
+                <div class="setting-item">
+                    <label>Location Type:</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" checked> Active Churches</label>
+                        <label><input type="checkbox" checked> Under Construction</label>
+                        <label><input type="checkbox" checked> Mission Sites</label>
+                        <label><input type="checkbox"> Historical Sites</label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Radius Filter:</label>
+                    <input type="range" min="1" max="100" value="50">
+                    <span>50 km</span>
+                </div>
+                <div class="setting-item">
+                    <button class="panel-button">Apply Filters</button>
+                    <button class="panel-button secondary">Reset</button>
+                </div>
+            </div>
+        
+            <!-- Export Panel -->
+            <div class="panel-content" id="export-panel">
                 <h3>Export Options</h3>
                 <div class="setting-item">
-                    <button class="panel-button">Export as CSV</button>
-                    <button class="panel-button">Export as KML</button>
+                    <label>Export Format:</label>
+                    <select id="export-format">
+                        <option value="csv">CSV</option>
+                        <option value="kml">KML</option>
+                        <option value="geojson">GeoJSON</option>
+                        <option value="excel">Excel</option>
+                    </select>
                 </div>
-            </section>
+                <div class="setting-item">
+                    <label>Data to Export:</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" checked> Location Data</label>
+                        <label><input type="checkbox" checked> Contact Information</label>
+                        <label><input type="checkbox" checked> Historical Records</label>
+                        <label><input type="checkbox"> Statistics</label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <button class="panel-button">Export Data</button>
+                    <button class="panel-button secondary">Download Template</button>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Map Container -->
-    <div id="map"></div>
 
     <!-- Bottom Toggles -->
     <div class="bottom-toggles">
@@ -100,6 +196,7 @@
             </label>
             <span class="toggle-label">Mission Sites</span>
         </div>
+
         <div class="toggle-container">
             <label class="toggle">
                 <input type="checkbox" id="influence-toggle">
