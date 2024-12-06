@@ -42,23 +42,25 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-tabs">
-            <button class="tab-button active" data-tab="settings">
+            <button class="tab-button" data-tab="settings" title="Settings">
                 <i class="fas fa-cog"></i>
             </button>
-            <button class="tab-button" data-tab="locations">
+            <button class="tab-button" data-tab="locations" title="Locations">
                 <i class="fas fa-map-marker-alt"></i>
             </button>
-            <button class="tab-button" data-tab="filters">
+            <button class="tab-button" data-tab="filters" title="Filters">
                 <i class="fas fa-filter"></i>
             </button>
-            <button class="tab-button" data-tab="export">
+            <button class="tab-button" data-tab="export" title="Export">
                 <i class="fas fa-file-export"></i>
             </button>
+            <button class="tab-button" data-tab="details" id="details-tab-button" title="Details">
+                <i class="fas fa-info-circle"></i>
+            </button>
         </div>
-        
         <div class="sidebar-content">
             <!-- Settings Panel -->
-            <div class="panel-content active" id="settings-panel">
+            <div id="settings-panel" class="panel-content">
                 <h3>Map Settings</h3>
                 <div class="setting-item">
                     <label>Map Style:</label>
@@ -85,9 +87,9 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- Locations Panel -->
-            <div class="panel-content" id="locations-panel">
+            <div id="locations-panel" class="panel-content">
                 <h3>Locations</h3>
                 <div class="search-box">
                     <input type="text" placeholder="Search locations...">
@@ -122,9 +124,9 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- Filters Panel -->
-            <div class="panel-content" id="filters-panel">
+            <div id="filters-panel" class="panel-content">
                 <h3>Data Filters</h3>
                 <div class="setting-item">
                     <label>Date Range:</label>
@@ -150,9 +152,9 @@
                     <button class="panel-button secondary">Reset</button>
                 </div>
             </div>
-        
+
             <!-- Export Panel -->
-            <div class="panel-content" id="export-panel">
+            <div id="export-panel" class="panel-content">
                 <h3>Export Options</h3>
                 <div class="setting-item">
                     <label>Export Format:</label>
@@ -175,6 +177,80 @@
                 <div class="setting-item">
                     <button class="panel-button">Export Data</button>
                     <button class="panel-button secondary">Download Template</button>
+                </div>
+            </div>
+
+            <!-- Details Panel -->
+            <div id="details-panel" class="panel-content">
+                <h3>Church Details</h3>
+                <div class="details-content">
+                    <div class="details-header">
+                        <h4 id="details-name">Select a church</h4>
+                        <span id="details-type" class="badge"></span>
+                    </div>
+                    
+                    <div class="details-section">
+                        <h5>Contact Information</h5>
+                        <div class="details-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="details-phone">-</span>
+                        </div>
+                        <div class="details-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="details-address">-</span>
+                        </div>
+                        <div class="details-item">
+                            <i class="fas fa-users"></i>
+                            <span id="details-members">-</span>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h5>Service Times</h5>
+                        <div class="details-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <div>Sabbath School: 9:00 AM</div>
+                                <div>Divine Service: 11:00 AM</div>
+                                <div>Afternoon Program: 2:00 PM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h5>Departments</h5>
+                        <div class="details-item">
+                            <i class="fas fa-list"></i>
+                            <div class="departments-list">
+                                <span class="department-tag">Pathfinders</span>
+                                <span class="department-tag">Youth Ministry</span>
+                                <span class="department-tag">Children's Ministry</span>
+                                <span class="department-tag">Women's Ministry</span>
+                                <span class="department-tag">Health Ministry</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h5>Additional Information</h5>
+                        <div class="details-item">
+                            <i class="fas fa-info-circle"></i>
+                            <div id="details-description">
+                                Select a church to view more information.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-actions">
+                        <button class="btn btn-primary" onclick="getDirectionsFromDetails()">
+                            <i class="fas fa-directions"></i>
+                            Get Directions
+                        </button>
+                        <button class="btn btn-secondary" onclick="editFromDetails()">
+                            <i class="fas fa-edit"></i>
+                            Edit Details
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
