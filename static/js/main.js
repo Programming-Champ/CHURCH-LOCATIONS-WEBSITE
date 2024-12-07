@@ -84,8 +84,116 @@ function createPopupContent(location) {
 
 // Action functions
 function editLocation(id) {
-    // TODO: Implement edit functionality
-    console.log('Edit location:', id);
+    const location = locations.find(loc => loc.id === id);
+    if (!location) return;
+
+    // Get modal elements
+    const modal = document.getElementById('editLocationModal');
+    const closeBtn = modal.querySelector('.edit-modal-close');
+    const cancelBtn = document.getElementById('editCancelBtn');
+    const saveBtn = document.getElementById('editSaveBtn');
+
+    // Fill form with location data
+    document.getElementById('editName').value = location.name;
+    document.getElementById('editType').value = location.type;
+    document.getElementById('editAddress').value = location.address || '';
+    document.getElementById('editPhone').value = location.phone || '';
+    document.getElementById('editMembers').value = location.members || '';
+    document.getElementById('editLat').value = location.lat;
+    document.getElementById('editLng').value = location.lng;
+
+    // Show modal
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+    // Handle close button click
+    closeBtn.onclick = function() {
+        closeEditModal();
+    }
+
+    // Handle cancel button click
+    cancelBtn.onclick = function() {
+        closeEditModal();
+    }
+
+    // Handle save button click
+    saveBtn.onclick = function() {
+        saveLocationChanges(id);
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeEditModal();
+        }
+    }
+
+    // Handle escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeEditModal();
+        }
+    });
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editLocationModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto'; // Restore scrolling
+}
+
+function saveLocationChanges(id) {
+    const location = locations.find(loc => loc.id === id);
+    if (!location) return;
+
+    const marker = findMarkerById(id);
+    if (!marker) return;
+
+    // Get form values
+    const name = document.getElementById('editName').value;
+    const type = document.getElementById('editType').value;
+    const address = document.getElementById('editAddress').value;
+    const phone = document.getElementById('editPhone').value;
+    const members = document.getElementById('editMembers').value;
+    const lat = parseFloat(document.getElementById('editLat').value);
+    const lng = parseFloat(document.getElementById('editLng').value);
+
+    // Update location data
+    Object.assign(location, {
+        name,
+        type,
+        address,
+        phone,
+        members: members ? parseInt(members) : null,
+        lat,
+        lng
+    });
+
+    // Update marker position if coordinates changed
+    if (location.lat !== marker.getLatLng().lat || location.lng !== marker.getLatLng().lng) {
+        marker.setLatLng([location.lat, location.lng]);
+    }
+
+    // Update marker icon if type changed
+    const icon = location.type === 'church' ? churchIcon : missionIcon;
+    marker.setIcon(icon);
+
+    // Update popup content
+    marker.getPopup().setContent(createPopupContent(location));
+
+    // Close modal
+    closeEditModal();
+}
+
+// Helper function to find marker by location id
+function findMarkerById(id) {
+    let marker = null;
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker && layer.location && layer.location.id === id) {
+            marker = layer;
+        }
+    });
+    return marker;
 }
 
 function getDirections(lat, lng) {
@@ -284,6 +392,14 @@ function fetchLocations() {
                 minWidth: 300
             }
         );
+
+        // Store location data in marker for easy access
+        marker.location = location;
+
+        // Add click handler to show details
+        marker.on('click', function() {
+            showDetails(location.id);
+        });
 
         if (location.type === 'church') {
             churchLayer.addLayer(marker);

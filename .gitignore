@@ -1,0 +1,5 @@
+# .tmp/
+.gitignore
+todo
+load_db.ipynb
+SDA_KENYA.csv
