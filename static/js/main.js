@@ -84,6 +84,7 @@ function createPopupContent(location) {
 
 // Action functions
 function editLocation(id) {
+    id = parseInt(id);
     const location = locations.find(loc => loc.id === id);
     if (!location) return;
 
@@ -106,24 +107,60 @@ function editLocation(id) {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
 
+    // Initialize edit map
+    let editMap = L.map('editLocationMap').setView([location.lat, location.lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(editMap);
+
+    // Add draggable marker
+    let marker = L.marker([location.lat, location.lng], {
+        draggable: true
+    }).addTo(editMap);
+
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(event) {
+        let position = marker.getLatLng();
+        document.getElementById('editLat').value = position.lat.toFixed(6);
+        document.getElementById('editLng').value = position.lng.toFixed(6);
+    });
+
+    // Update marker when coordinates are manually changed
+    document.getElementById('editLat').addEventListener('change', updateMarker);
+    document.getElementById('editLng').addEventListener('change', updateMarker);
+
+    function updateMarker() {
+        let lat = parseFloat(document.getElementById('editLat').value);
+        let lng = parseFloat(document.getElementById('editLng').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            marker.setLatLng([lat, lng]);
+            editMap.setView([lat, lng]);
+        }
+    }
+
+
     // Handle close button click
     closeBtn.onclick = function() {
+        editMap.remove();
         closeEditModal();
     }
 
     // Handle cancel button click
     cancelBtn.onclick = function() {
+        editMap.remove();
         closeEditModal();
     }
 
     // Handle save button click
     saveBtn.onclick = function() {
+        editMap.remove();
         saveLocationChanges(id);
     }
 
     // Close modal when clicking outside
     window.onclick = function(event) {
         if (event.target === modal) {
+            editMap.remove();
             closeEditModal();
         }
     }
@@ -131,9 +168,15 @@ function editLocation(id) {
     // Handle escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
+            editMap.remove();
             closeEditModal();
         }
     });
+
+    // Fix map display issue by triggering a resize after modal is shown
+    setTimeout(() => {
+        editMap.invalidateSize();
+    }, 100);    
 }
 
 function closeEditModal() {
@@ -205,7 +248,11 @@ let currentLocation = null;
 
 // Function to show location details in sidebar
 function showDetails(id) {
+    id = parseInt(id);
+    console.log(id);
     const location = locations.find(loc => loc.id === id);
+    console.log(locations);
+    console.log(location);
     if (!location) return;
 
     currentLocation = location;
@@ -273,141 +320,58 @@ function editFromDetails() {
 }
 
 // Store locations globally for access
-let locations = [
-    { 
-        id: '1',
-        type: 'church',
-        name: 'Nairobi Central SDA Church',
-        lat: -1.2897,
-        lng: 36.8168,
-        members: 3500,
-        address: 'Valley Road, Nairobi',
-        phone: '+254 20 2724017'
-    },
-    {
-        id: '2',
-        type: 'church',
-        name: 'Maxwell SDA Church',
-        lat: -1.2953,
-        lng: 36.7672,
-        members: 2800,
-        address: 'Nairobi Adventist University, Magadi Road',
-        phone: '+254 20 2679462'
-    },
-    {
-        id: '3',
-        type: 'church',
-        name: 'Karengata SDA Church',
-        lat: -1.3178,
-        lng: 36.8162,
-        members: 2000,
-        address: 'Karengata Road, Off Langata Road',
-        phone: '+254 722 123456'
-    },
-    {
-        id: '4',
-        type: 'church',
-        name: 'New Life SDA Church',
-        lat: -1.2706,
-        lng: 36.8219,
-        members: 1500,
-        address: 'Ngong Road, Nairobi',
-        phone: '+254 733 123456'
-    },
-    {
-        id: '5',
-        type: 'mission',
-        name: 'East Kenya Union Conference',
-        lat: -1.2897,
-        lng: 36.8214,
-        members: null,
-        address: 'East Kenya Union Conference, Valley Road',
-        phone: '+254 20 2714033'
-    },
-    {
-        id: '6',
-        type: 'church',
-        name: 'Kisumu Central SDA Church',
-        lat: -0.0918,
-        lng: 34.7571,
-        members: 1800,
-        address: 'Oginga Odinga Road, Kisumu',
-        phone: '+254 57 2020238'
-    },
-    {
-        id: '7',
-        type: 'church',
-        name: 'Mombasa Central SDA Church',
-        lat: -4.0435,
-        lng: 39.6682,
-        members: 1200,
-        address: 'Kenyatta Avenue, Mombasa',
-        phone: '+254 41 2224827'
-    },
-    {
-        id: '8',
-        type: 'mission',
-        name: 'Kenya Lake Conference',
-        lat: -0.0905,
-        lng: 34.7516,
-        members: null,
-        address: 'Kenya Lake Conference, Kisumu',
-        phone: '+254 57 2021714'
-    },
-    {
-        id: '9',
-        type: 'church',
-        name: 'Eldoret Central SDA Church',
-        lat: 0.5143,
-        lng: 35.2698,
-        members: 1500,
-        address: 'Uganda Road, Eldoret',
-        phone: '+254 53 2061248'
-    },
-    {
-        id: '10',
-        type: 'mission',
-        name: 'Central Kenya Conference',
-        lat: -1.2860,
-        lng: 36.8168,
-        members: null,
-        address: 'Central Kenya Conference, Nairobi',
-        phone: '+254 20 2715822'
-    }
-];
+let locations = [];
 
 // Function to fetch and display locations
-function fetchLocations() {
-    locations.forEach(location => {
-        const marker = L.marker(
-            [location.lat, location.lng],
-            { 
-                icon: location.type === 'church' ? churchIcon : missionIcon
-            }
-        ).bindPopup(
-            createPopupContent(location),
-            { 
-                className: 'custom-popup',
-                maxWidth: 300,
-                minWidth: 300
-            }
-        );
+async function fetchLocations() {
+    try {
+        const response = await fetch('/api/locations');
+        const data = await response.json();
+        
+        // Clear existing markers
+        churchLayer.clearLayers();
+        missionLayer.clearLayers();
+        
+        // Store all locations
+        locations = [...data.churches, ...data.done_mission_sites, ...data.proposed_mission_sites];
+        
+        // Add markers for each location
+        locations.forEach(location => {
+            const marker = L.marker(
+                [location.lat, location.lng],  
+                { 
+                    icon: location.type === 'church' ? churchIcon : missionIcon
+                }
+            ).bindPopup(
+                createPopupContent(location),
+                { 
+                    className: 'custom-popup',
+                    maxWidth: 300,
+                    minWidth: 300
+                }
+            );
 
-        // Store location data in marker for easy access
-        marker.location = location;
+            // Store location data in marker for easy access
+            marker.location = location;
 
-        // Add click handler to show details
-        marker.on('click', function() {
-            showDetails(location.id);
+            // Add click handler to show details
+            marker.on('click', function() {
+                console
+                showDetails(location.id);
+            });
+
+            if (location.type === 'church') {
+                churchLayer.addLayer(marker);
+            } else {
+                missionLayer.addLayer(marker);
+            }
         });
-
-        if (location.type === 'church') {
-            churchLayer.addLayer(marker);
-        } else {
-            missionLayer.addLayer(marker);
-        }
-    });
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+    }
 }
+
+
 
 // Toggle event listeners
 document.getElementById('churches-toggle').addEventListener('change', function(e) {
