@@ -110,7 +110,7 @@ function editLocation(id) {
     // Initialize edit map
     let editMap = L.map('editLocationMap').setView([location.lat, location.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: ' OpenStreetMap contributors'
     }).addTo(editMap);
 
     // Add draggable marker
@@ -249,10 +249,9 @@ let currentLocation = null;
 // Function to show location details in sidebar
 function showDetails(id) {
     id = parseInt(id);
-    console.log(id);
+
     const location = locations.find(loc => loc.id === id);
-    console.log(locations);
-    console.log(location);
+
     if (!location) return;
 
     currentLocation = location;
@@ -371,7 +370,84 @@ async function fetchLocations() {
     }
 }
 
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
 
+const searchInput = document.getElementById('search-input');
+
+searchInput.addEventListener('input', debounce((event) => {
+    const query = event.target.value;
+    if (query.length > 0) {
+        searchData(query);
+    } else {
+        displayResults(locations); // Show all locations if query is empty
+    }
+}, 200));
+
+function searchData(query) {
+    // Send AJAX request to the Flask endpoint
+    fetch(`/api/search?keyword=${encodeURIComponent(query)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch search results');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.locations) {
+                displayResults(data.locations);
+            } else {
+                displayResults([]);
+            }
+        })
+        .catch(error => {
+            console.error('Error during search:', error);
+            displayResults([]); // Clear results on error
+        });
+}
+
+function displayResults(results) {
+    // Clear existing markers
+    churchLayer.clearLayers();
+    missionLayer.clearLayers();
+
+    // Add markers for each location
+    results.forEach(location => {
+        const marker = L.marker(
+            [location.lat, location.lng],  
+            { 
+                icon: location.type === 'church' ? churchIcon : missionIcon
+            }
+        ).bindPopup(
+            createPopupContent(location),
+            { 
+                className: 'custom-popup',
+                maxWidth: 300,
+                minWidth: 300
+            }
+        );
+
+        // Store location data in marker for easy access
+        marker.location = location;
+
+        // Add click handler to show details
+        marker.on('click', function() {
+            console
+            showDetails(location.id);
+        });
+
+        if (location.type === 'church') {
+            churchLayer.addLayer(marker);
+        } else {
+            missionLayer.addLayer(marker);
+        }
+    });
+}
 
 // Toggle event listeners
 document.getElementById('churches-toggle').addEventListener('change', function(e) {
@@ -466,21 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Search functionality
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
 
-    function performSearch() {
-        const searchTerm = searchInput.value.toLowerCase();
-        // TODO: Implement search logic
-    }
-
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
 
     // Initialize locations
     fetchLocations();

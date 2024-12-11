@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
@@ -65,6 +65,25 @@ def get_locations():
             'proposed_mission_sites': []
         }
         return jsonify(response_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Efficient endpoint for searching locations
+@app.route('/api/search')
+def search_locations():
+    try:
+        keyword = request.args.get('keyword', '').strip()
+        print(keyword)
+        if not keyword:
+            return jsonify({'error': 'Keyword is required'}), 400
+
+        # Use ILIKE for case-insensitive search
+        results = Church.query.filter(Church.name.ilike(f"%{keyword}%")).all()
+        
+        # Transform results into dictionaries
+        locations = [church.to_dict() for church in results]
+
+        return jsonify({'locations': locations})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
