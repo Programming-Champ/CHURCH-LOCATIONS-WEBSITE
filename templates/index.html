@@ -281,6 +281,7 @@
             <span class="toggle-label">Area of Influence</span>
         </div>
     </div>
+    
 
     <!-- Edit Location Modal -->
     <div id="editLocationModal" class="edit-modal">
@@ -339,7 +340,64 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- New Location Modal -->
+    <div id="newLocationModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h2>New Location</h2>
+                <span class="edit-modal-close">&times;</span>
+            </div>
+            <div class="edit-modal-body">
+                <form id="newLocationForm">
+                    <div class="edit-form-group">
+                        <label for="newLocationName">Name</label>
+                        <input type="text" id="newLocationName" class="edit-form-control" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newLocationType">Type</label>
+                        <select id="newLocationType" class="edit-form-control" required>
+                            <option value="church">Church</option>
+                            <option value="mission">Mission</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newLocationAddress">Address</label>
+                        <input type="text" id="newLocationAddress" class="edit-form-control">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newLocationPhone">Phone</label>
+                        <input type="tel" id="newLocationPhone" class="edit-form-control">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newLocationMembers">Members</label>
+                        <input type="number" id="newLocationMembers" class="edit-form-control" min="0">
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Location (Drag marker to update)</label>
+                        <div id="newLocationMap" style="height: 300px; margin-bottom: 15px;"></div>
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Coordinates</label>
+                        <div class="edit-coordinates-group">
+                            <div class="edit-coordinate-input">
+                                <label for="newLocationLat">Latitude</label>
+                                <input type="number" id="newLocationLat" class="edit-form-control" step="any" required>
+                            </div>
+                            <div class="edit-coordinate-input">
+                                <label for="newLocationLng">Longitude</label>
+                                <input type="number" id="newLocationLng" class="edit-form-control" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="edit-modal-footer">
+                <button type="button" id="newLocationCancelBtn" class="edit-btn edit-btn-secondary">Cancel</button>
+                <button type="button" id="newLocationSaveBtn" class="edit-btn edit-btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Custom JS -->

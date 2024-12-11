@@ -557,3 +557,141 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+// Function to open the modal for proposing a new church
+function openNewLocationModal() {
+    let location = {
+        id: null,
+        name: '',
+        type: 'church',
+        address: '',
+        phone: '',
+        members: '',
+        lat: -1.286389,
+        lng: 36.817223
+    };
+    const modal = document.getElementById('newLocationModal');
+    const closeBtn = modal.querySelector('.edit-modal-close');
+    const cancelBtn = document.getElementById('newLocationCancelBtn');
+    const saveBtn = document.getElementById('newLocationSaveBtn');
+
+    // Show modal
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+    // Initialize edit map
+    let newLocationMap = L.map('newLocationMap').setView([location.lat, location.lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: ' OpenStreetMap contributors'
+    }).addTo(newLocationMap);
+
+    // Add draggable marker
+    let marker = L.marker([location.lat, location.lng], {
+        draggable: true
+    }).addTo(newLocationMap);
+
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(event) {
+        let position = marker.getLatLng();
+        document.getElementById('newLocationLat').value = position.lat.toFixed(6);
+        document.getElementById('newLocationLng').value = position.lng.toFixed(6);
+    });
+
+    // Update marker when coordinates are manually changed
+    document.getElementById('newLocationLat').addEventListener('change', updateMarker);
+    document.getElementById('newLocationLng').addEventListener('change', updateMarker);
+
+    function updateMarker() {
+        let lat = parseFloat(document.getElementById('newLocationLat').value);
+        let lng = parseFloat(document.getElementById('newLocationLng').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            marker.setLatLng([lat, lng]);
+            newLocationMap.setView([lat, lng]);
+        }
+    }
+
+
+    // Handle close button click
+    closeBtn.onclick = function() {
+        newLocationMap.remove();
+        closeNewLocationModal();
+    }
+
+    // Handle cancel button click
+    cancelBtn.onclick = function() {
+        newLocationMap.remove();
+        closeNewLocationModal();
+    }
+
+    // Handle save button click
+    saveBtn.onclick = function() {
+        newLocationMap.remove();
+        saveLocationChanges(id);
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            newLocationMap.remove();
+            closeNewLocationModal();
+        }
+    }
+
+    // Handle escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            newLocationMap.remove();
+            closeNewLocationModal();
+        }
+    });
+
+}
+
+// Function to close the modal
+function closeNewLocationModal() {
+    const modal = document.getElementById('newLocationModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto'; // Restore scrolling
+}
+
+// Function to submit new location data
+function submitNewLocation() {
+    const name = document.getElementById('newLocationName').value;
+    const location = document.getElementById('newLocationAddress').value;
+    const latitude = document.getElementById('newLocationLat').value;
+    const longitude = document.getElementById('newLocationLng').value;
+    const type = document.getElementById('newLocationType').value; // Get selected type
+
+    // Send data to the backend
+    fetch('/api/locations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, location, latitude, longitude, type }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to submit new location');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('New location added:', data);
+        // Close the modal and clear fields
+        closeNewLocationModal();
+        // Optionally, refresh the list of locations or update the UI
+    })
+    .catch(error => {
+        console.error('Error submitting new church:', error);
+    });
+}
+
+// Event listener for FAB click
+const fab = document.getElementById('add-location');
+fab.addEventListener('click', openNewLocationModal);
+
+// Event listener for modal submit button
+const submitButton = document.getElementById('newLocationSaveBtn');
+submitButton.addEventListener('click', submitNewLocation);
