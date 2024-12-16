@@ -201,6 +201,27 @@ function saveLocationChanges(id) {
     const lat = parseFloat(document.getElementById('editLat').value);
     const lng = parseFloat(document.getElementById('editLng').value);
 
+    fetch('http://127.0.0.1:8000/api/church/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: id,
+          name: name,
+          type: type,
+          address: address,
+          phone: phone,
+          members: members,
+          lat: lat,
+          lng: lng
+        }),
+      })
+        .then(response => response.json())
+        .then(data => console.log(data))     // Handle the data
+        .catch(error => alert('Error! An error occurred'));  // Handle errors
+      
+
     // Update location data
     Object.assign(location, {
         name,
@@ -226,6 +247,8 @@ function saveLocationChanges(id) {
 
     // Close modal
     closeEditModal();
+
+    alert("Success! Details Submitted for")
 }
 
 // Helper function to find marker by location id
@@ -501,6 +524,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }).addTo(map);
         }
     }
+
+    let mapstyleInput = document.getElementById("map-style")
+    mapstyleInput.addEventListener('change', ()=>{setMapStyle(mapstyleInput.value)})
 
     // Sidebar functionality
     const sidebar = document.querySelector('.sidebar');
