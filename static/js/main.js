@@ -201,6 +201,14 @@ function saveLocationChanges(id) {
     const lat = parseFloat(document.getElementById('editLat').value);
     const lng = parseFloat(document.getElementById('editLng').value);
 
+    console.log(name)
+    console.log(type)
+    console.log(address)
+    console.log(phone)
+    console.log(members)
+    console.log(lat)
+    console.log(lng)
+
     fetch('http://127.0.0.1:8000/api/church/update', {
         method: 'PUT',
         headers: {
@@ -216,10 +224,9 @@ function saveLocationChanges(id) {
           lat: lat,
           lng: lng
         }),
-      })
-        .then(response => response.json())
-        .then(data => console.log(data))     // Handle the data
-        .catch(error => alert('Error! An error occurred'));  // Handle errors
+      }).then(response => response.json())
+        .then((data) => console.log(data))     // Handle the data
+        .catch(error => alert(error));  // Handle errors
       
 
     // Update location data
