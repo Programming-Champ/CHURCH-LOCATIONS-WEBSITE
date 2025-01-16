@@ -193,7 +193,7 @@ def logout_page():
 @login_required
 def admin():
     # get all proposed updates
-    updates = ProposedChurchUpdate.query.all()
+    updates = ProposedChurchUpdate.query.filter_by(approval_status = 0).all()
     print(updates)
     return render_template('admin_page.html', updates = updates)
 
@@ -233,25 +233,17 @@ def search_locations():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@csrf.exempt
 @app.route('/api/church/update', methods=['GET', 'POST', 'PUT'])
 def update_church_details():
     print("In the function")
-    if request.method == 'POST':
+    if request.method == 'PUT':
         print("We are here")
         data = request.json
-        print(data)
 
-        # This is temporary. To be approved by an admin before it's applied
         church = Church.query.filter_by(id = data['id']).first()
         if not church:
             return jsonify({'error': 'Church not found'}), 404
-        church.name = data['name']
-        church.lat = data['lat']
-        church.long = data['lng']
-        church.members = data['members']
-        church.phone = data['phone']
-        church.address = data['address']
-        church.approval_status = 0 # pending state
 
         # create a proposed change that will be applied later
         new_proposed_church_update = ProposedChurchUpdate(church_id = data['id'], name=data['name'], lat=data['lat'], long=data['lng'],
@@ -263,6 +255,43 @@ def update_church_details():
         return jsonify({'message': "success"}), 201
     else:
         print("Bad request")
+        return jsonify({'message': "Bad request"}, 400)
+
+@app.route("/api/church/update/approve/<int:id>", methods=['GET'])
+def approve_church_proposal(id):
+    proposed_church = ProposedChurchUpdate.query.filter_by(id = id).first()
+    if not proposed_church:
+        return jsonify({'message': "Update not Found"}), 404
+    church = Church.query.filter_by(id = proposed_church.church_id).first()
+    if not church:
+        return jsonify({'message': "Church not Found"}), 404
+    
+    # update
+    church.name = proposed_church.name
+    church.lat = proposed_church.lat
+    church.long = proposed_church.long
+    church.members = proposed_church.members
+    church.phone = proposed_church.phone
+    church.address = proposed_church.address
+    church.county = proposed_church.county
+    church.ward = proposed_church.ward
+
+    proposed_church.approval_status = 1
+
+    #save
+    db.session.commit()
+
+    return jsonify({'message': "Success"}), 201
+
+@app.route("/api/church/update/reject/<int:id>", methods=['GET'])
+def reject_church_proposal(id):
+    proposed_church_update = ProposedChurchUpdate.query.get(id)
+    if not proposed_church_update:
+        return jsonify({'message': "Church Not Found"}), 404
+    db.session.delete(proposed_church_update)
+    db.session.commit()
+
+    return jsonify({'message': "Success"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
