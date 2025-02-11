@@ -201,13 +201,16 @@ function saveLocationChanges(id) {
     const lat = parseFloat(document.getElementById('editLat').value);
     const lng = parseFloat(document.getElementById('editLng').value);
 
-    console.log(name)
-    console.log(type)
-    console.log(address)
-    console.log(phone)
-    console.log(members)
-    console.log(lat)
-    console.log(lng)
+    console.log(JSON.stringify({
+        id: id,
+        name: name,
+        type: type,
+        address: address,
+        phone: phone,
+        members: members,
+        lat: lat,
+        lng: lng
+    }));
 
     fetch('http://127.0.0.1:8000/api/church/update', {
         method: 'PUT',
@@ -223,10 +226,10 @@ function saveLocationChanges(id) {
           members: members,
           lat: lat,
           lng: lng
-        }),
+        })
       }).then(response => response.json())
-        .then((data) => console.log(data))     // Handle the data
-        .catch(error => alert(error));  // Handle errors
+        .then((data) => alert("Proposal Saved"))     // Handle the data
+        .catch(error => console.log(error));  // Handle errors
       
 
     // Update location data
@@ -719,6 +722,35 @@ function submitNewLocation() {
     .catch(error => {
         console.error('Error submitting new church:', error);
     });
+}
+
+//function to approve a church update proposal
+function approveChurchUpdateProposal(id){
+    alert("Confirm approval")
+
+    fetch(`http://127.0.0.1:8000/api/church/update/approve/${id}`)
+     .then(response => response.json())
+     .then((data) => {
+        alert("Success")
+        document.getElementById(`update_proposal_${id}`).style.display = "none"
+        console.log(data)
+    })
+     .catch(error => console.error('Error:', error));
+
+}
+
+//function to reject a church update proposa;
+function rejectChurchUpdateProposal(id){
+    alert("Confirm rejection of this Update")
+
+    fetch(`http://127.0.0.1:8000/api/church/update/reject/${id}`)
+     .then(response => response.json())
+     .then((data) => {
+        alert("Success")
+        document.getElementById(`update_proposal_${id}`).style.display = "none"
+        console.log(data)
+    })
+     .catch(error => console.error('Error:', error));
 }
 
 // Event listener for FAB click

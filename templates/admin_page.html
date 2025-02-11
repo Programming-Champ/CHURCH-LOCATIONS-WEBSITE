@@ -21,7 +21,7 @@
         </thead>
         <tbody>
             {% for update in updates %}
-                <tr>
+                <tr id="update_proposal_{{ update.id }}">
                     <th scope="col">{{ loop.index }}</th>
                     <td scope="col">{{ update.name }}</td>
                     <td scope="col">{{ update.lat }}</td>
@@ -31,8 +31,8 @@
                     <td scope="col">{{ update.address }}</td>
                     <td scope="col">{{ update.phone }}</td>
                     <td scope="col">{{ update.members }}</td>
-                    <td scope="col"><button class="btn btn-primary">Approve</button></td>
-                    <td scope="col"><button class="btn btn-danger">Reject</button></td>
+                    <td scope="col"><button class="btn btn-primary" onclick="approveChurchUpdateProposal({{ update.id }})">Approve</button></td>
+                    <td scope="col"><button class="btn btn-danger" onclick="rejectChurchUpdateProposal({{ update.id }})">Reject</button></td>
                 </tr>
             {% endfor %}
             
