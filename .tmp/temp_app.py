@@ -75,7 +75,30 @@ class Church(db.Model):
             'type': 'church'  
         }
 
-class ProposedChurchUpdate(db.Model):
+class ProposedNewChurch(db.Model): # non existent church
+    __tablename__ = 'new_church'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    lat = db.Column(db.Float, nullable=False)
+    long = db.Column(db.Float, nullable=False)
+    address = db.Column(db.String(200), nullable = True)
+    phone = db.Column(db.String(100), nullable = True) # of the new church
+    members = db.Column(db.Integer, nullable = True)
+    contact_phone = db.Column(db.String(100), nullable = True) # of the person proposing the new church
+    approval_status = db.Column(db.Integer, default = 0) # 0 - pending, 1 - approved
+
+class MissionSite(db.Model):
+    __tablename__ = 'mission'
+    id = db.Column(db.Integer, primary_key=True)
+    mission_type = db.Column(db.String(255), nullable=False)
+    lat = db.Column(db.Float, nullable=False)
+    long = db.Column(db.Float, nullable=False)
+    phone = db.Column(db.String(100), nullable = True) # of the mission organizer
+    contact_phone = db.Column(db.String(100), nullable = True) # of the person adding the mission data
+    organizer = db.Column(db.String(255), nullable = True)
+    approval_status = db.Column(db.Integer, default = 0) # 0 - pending, 1 - approved
+
+class ProposedChurchUpdate(db.Model): # existing church but needs to be edited
     __tablename__ = 'church_update'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -86,9 +109,12 @@ class ProposedChurchUpdate(db.Model):
     county = db.Column(db.String(100))
     ward = db.Column(db.String(100))
     address = db.Column(db.String(200), nullable = True)
-    phone = db.Column(db.String(100), nullable = True)
+    phone = db.Column(db.String(100), nullable = True) # of the church
     members = db.Column(db.Integer, nullable = True)
+    contact_phone = db.Column(db.String(100), nullable = True) # of the person proposing the change
     approval_status = db.Column(db.Integer, default = 0) # 0 - pending, 1 - approved
+
+    # add timestamp
 
     def to_dict(self):
         return {
@@ -194,8 +220,26 @@ def logout_page():
 def admin():
     # get all proposed updates
     updates = ProposedChurchUpdate.query.filter_by(approval_status = 0).all()
-    print(updates)
-    return render_template('admin_page.html', updates = updates)
+    orignal_churches = []
+    for update in updates:
+        original_church = Church.query.filter_by(id=update.church_id).first()
+        orignal_churches.append(original_church)
+    return render_template('admin_page.html', updates = updates, original_churches = orignal_churches)
+
+@app.route('/admin/new-churches')
+@login_required
+def admin_new_churches():
+    # get all New Church Proposals
+    new_churches = ProposedNewChurch.query.filter_by(approval_status = 0).all()
+    
+    return render_template('new_churches.html', new_churches = new_churches)
+
+@app.route('/admin/mission-sites')
+@login_required
+def admin_mission_sites():
+    # get all Mission Sites
+    mission_sites = MissionSite.query.all()
+    return render_template('mission_sites.html', mission_sites = mission_sites)
 
 @app.route('/api/locations')
 def get_locations():
@@ -248,7 +292,7 @@ def update_church_details():
         # create a proposed change that will be applied later
         new_proposed_church_update = ProposedChurchUpdate(church_id = data['id'], name=data['name'], lat=data['lat'], long=data['lng'],
                                                           members = data['members'], phone=data['phone'], address=data['address'], county=church.county,
-                                                          ward=church.ward)
+                                                          ward=church.ward, contact_phone = data['contact_phone'])
         db.session.add(new_proposed_church_update)
 
         db.session.commit()
@@ -292,6 +336,37 @@ def reject_church_proposal(id):
     db.session.commit()
 
     return jsonify({'message': "Success"}), 200
+
+@csrf.exempt
+@app.route("/api/mission/new", methods=['POST'])
+def add_new_mission_site():
+    if request.method == "POST":
+        data = request.json
+        print(data)
+        new_mission = MissionSite(mission_type = data['type'], lat = data['lat'], long = data['long'], phone = data['phone'], contact_phone = data['contact_phone'])
+        db.session.add(new_mission)
+
+        db.session.commit()
+        return jsonify({'message': "success"}), 201
+    
+    else:
+        print("Bad request")
+        return jsonify({'message': "Bad Request"}), 400
+
+@csrf.exempt
+@app.route("/api/church/new", methods=['POST'])
+def add_new_church():
+    if request.method == "POST":
+        data = request.json
+
+        new_church = ProposedNewChurch(name = data['name'], lat = data['lat'], long = data['long'], address = data['address'], phone = data['phone'], members = data['members'], contact_phone = data['contact_phone'])
+
+        db.session.add(new_church)
+        db.session.commit()
+
+        return jsonify({"Message": "Success"}), 201
+    
+    return jsonify({'Message': "Bad Request"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
