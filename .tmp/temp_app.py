@@ -73,7 +73,7 @@ class Church(db.Model):
             'phone': self.phone,
             'members': self.members,
             'type': 'church'  
-        }
+    }
 
 class ProposedNewChurch(db.Model): # non existent church
     __tablename__ = 'new_church'
@@ -97,6 +97,16 @@ class MissionSite(db.Model):
     contact_phone = db.Column(db.String(100), nullable = True) # of the person adding the mission data
     organizer = db.Column(db.String(255), nullable = True)
     approval_status = db.Column(db.Integer, default = 0) # 0 - pending, 1 - approved
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'type': self.mission_type,
+            'lat': self.lat,
+            'lng': self.long,
+            'phone': self.phone,
+            'organizer': self.organizer 
+    }
 
 class ProposedChurchUpdate(db.Model): # existing church but needs to be edited
     __tablename__ = 'church_update'
@@ -247,15 +257,18 @@ def get_locations():
         # Query all churches from the database
         churches = Church.query.all()
         church_list = [church.to_dict() for church in churches]
+
+        missions = MissionSite.query.filter_by(approval_status = 1).all()
+        mission_list = [mission.to_dict() for mission in missions]
         
         # Format response to match frontend expectations
         response_data = {
             'churches': church_list,
-            'done_mission_sites': [],  
-            'proposed_mission_sites': []
+            'mission_sites': mission_list,
         }
         return jsonify(response_data)
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 # Efficient endpoint for searching locations
@@ -280,7 +293,6 @@ def search_locations():
 @csrf.exempt
 @app.route('/api/church/update', methods=['GET', 'POST', 'PUT'])
 def update_church_details():
-    print("In the function")
     if request.method == 'PUT':
         print("We are here")
         data = request.json
@@ -329,7 +341,7 @@ def approve_church_proposal(id):
 
 @app.route("/api/church/update/reject/<int:id>", methods=['GET'])
 def reject_church_proposal(id):
-    proposed_church_update = ProposedChurchUpdate.query.get(id)
+    proposed_church_update = ProposedChurchUpdate.query.get(id), 
     if not proposed_church_update:
         return jsonify({'message': "Church Not Found"}), 404
     db.session.delete(proposed_church_update)
@@ -352,6 +364,30 @@ def add_new_mission_site():
     else:
         print("Bad request")
         return jsonify({'message': "Bad Request"}), 400
+
+@app.route("/api/mission/approve/<int:id>", methods=['GET'])
+@login_required
+def approve_mission_site(id):
+    mission_site = MissionSite.query.filter_by(id = id).first()
+    if not mission_site:
+        return jsonify({'message': "Mission Site not Found"}), 404
+    
+    mission_site.approval_status = 1
+    db.session.commit()
+
+    return redirect(url_for("admin_mission_sites"))
+
+@app.route("/api/mission/reject/<int:id>", methods=['GET'])
+@login_required
+def reject_mission_site(id):
+    mission_site = MissionSite.query.filter_by(id = id).first()
+    if not mission_site:
+        return jsonify({'message': "Mission Site not Found"}), 404
+    
+    db.session.delete(mission_site)
+    db.session.commit()
+
+    return redirect(url_for("admin_mission_sites"))
 
 @csrf.exempt
 @app.route("/api/church/new", methods=['POST'])
