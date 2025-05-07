@@ -9,7 +9,9 @@ from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import PasswordField, StringField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError
 from flask_wtf.csrf import CSRFProtect
+import pandas as pd
 import os
+from sqlalchemy import text
 
 # Load environment variables from .env file
 load_dotenv()
@@ -56,7 +58,6 @@ class Church(db.Model):
     lat = db.Column(db.Float, nullable=False)
     long = db.Column(db.Float, nullable=False)
     county = db.Column(db.String(100))
-    ward = db.Column(db.String(100))
     address = db.Column(db.String(200), nullable = True)
     phone = db.Column(db.String(100), nullable = True)
     members = db.Column(db.Integer, nullable = True)
@@ -68,7 +69,6 @@ class Church(db.Model):
             'lat': self.lat,
             'lng': self.long,
             'county': self.county,
-            'ward': self.ward,
             'address': self.address,
             'phone': self.phone,
             'members': self.members,
@@ -82,10 +82,24 @@ class ProposedNewChurch(db.Model): # non existent church
     lat = db.Column(db.Float, nullable=False)
     long = db.Column(db.Float, nullable=False)
     address = db.Column(db.String(200), nullable = True)
+    county = db.Column(db.String(200), nullable = True)
     phone = db.Column(db.String(100), nullable = True) # of the new church
     members = db.Column(db.Integer, nullable = True)
     contact_phone = db.Column(db.String(100), nullable = True) # of the person proposing the new church
     approval_status = db.Column(db.Integer, default = 0) # 0 - pending, 1 - approved
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'lat': self.lat,
+            'lng': self.long,
+            'county': self.county,
+            'address': self.address,
+            'phone': self.phone,
+            'members': self.members,
+            'type': 'church'  
+    }
 
 class MissionSite(db.Model):
     __tablename__ = 'mission'
@@ -170,12 +184,10 @@ class LoginForm(FlaskForm):
 #     with app.app_context():  # Ensure the Flask app context is available
 #         for index, row in df.iterrows():
 #             church = Church(
-#                 id=row['id'], 
 #                 name=row['Name'], 
 #                 lat=row['Lat'], 
 #                 long=row['Long'], 
 #                 county=row['County'], 
-#                 ward=row['Ward']
 #             )
 #             db.session.add(church)
         
@@ -183,11 +195,18 @@ class LoginForm(FlaskForm):
 #         db.session.commit()
 #         print(f"{len(df)} records inserted into the database.")
 
-# load_church_data_from_csv("../SDA_KENYA.csv")
+# # load_church_data_from_csv("../SDA_KENYA.csv")
 
-# Call the function with your CSV file
+# # Call the function with your CSV file
 # load_church_data_from_csv('church_data.csv')
 
+def reset_church_id_sequence():
+    print("resetting")
+    with db.engine.connect() as connection:
+        connection.execute(text("""
+            SELECT setval('church_id_seq', (SELECT COALESCE(MAX(id), 1) FROM church));
+        """))
+        connection.commit()
 
 @app.route('/')
 def index():
@@ -330,7 +349,6 @@ def approve_church_proposal(id):
     church.phone = proposed_church.phone
     church.address = proposed_church.address
     church.county = proposed_church.county
-    church.ward = proposed_church.ward
 
     proposed_church.approval_status = 1
 
@@ -395,7 +413,7 @@ def add_new_church():
     if request.method == "POST":
         data = request.json
 
-        new_church = ProposedNewChurch(name = data['name'], lat = data['lat'], long = data['long'], address = data['address'], phone = data['phone'], members = data['members'], contact_phone = data['contact_phone'])
+        new_church = ProposedNewChurch(name = data['name'], lat = data['lat'], long = data['long'], address = data['address'], phone = data['phone'], members = data['members'], contact_phone = data['contact_phone'], county = data['county'])
 
         db.session.add(new_church)
         db.session.commit()
@@ -404,5 +422,37 @@ def add_new_church():
     
     return jsonify({'Message': "Bad Request"}), 400
 
+@app.route("/api/church/new/approve/<int:id>", methods=['GET'])
+@login_required
+def approve_new_church(id):
+    proposed_church = ProposedNewChurch.query.filter_by(id = id).first()
+    if not proposed_church:
+        return jsonify({'message': "New Church not Found"}), 404
+    
+    proposed_church.approval_status = 1
+
+    new_church = Church(name = proposed_church.name, lat = proposed_church.lat, long = proposed_church.long, address = proposed_church.address, county = proposed_church.county, members = proposed_church.members, phone = proposed_church.phone)
+
+    db.session.add(new_church)
+
+    db.session.commit()
+
+    return redirect(url_for("admin_new_churches"))
+
+@app.route("/api/church/new/reject/<int:id>", methods=['GET'])
+@login_required
+def reject_new_church(id):
+    proposed_church = ProposedNewChurch.query.filter_by(id = id).first()
+    if not proposed_church:
+        return jsonify({'message': "New Church not Found"}), 404
+
+    db.session.delete(proposed_church)
+
+    db.session.commit()
+
+    return redirect(url_for("admin_new_churches"))
+
 if __name__ == '__main__':
+    # with app.app_context():
+    #     reset_church_id_sequence()
     app.run(debug=True, port=8000)
